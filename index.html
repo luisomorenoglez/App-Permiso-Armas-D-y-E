@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Permiso de Armas D/E - Estudio</title>
 <link rel="stylesheet" href="css/style.css">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<meta name="theme-color" content="#0f1115">
 </head>
 <body>
 <header>
@@ -31,6 +34,14 @@
       <p class="muted">20 preguntas aleatorias de los 7 temas. Necesitas 16/20 para aprobar.</p>
       <div class="actions-row">
         <button class="btn btn-primary" id="btn-start-exam">Empezar examen</button>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <h2>Fallos frecuentes</h2>
+      <p class="muted">Las preguntas en las que más has fallado, para reforzarlas antes del examen.</p>
+      <div class="actions-row">
+        <button class="btn btn-primary" id="btn-review-mistakes">Repasar fallos <span id="mistakes-count"></span></button>
       </div>
     </div>
 
@@ -115,5 +126,12 @@
 <script src="js/data.js"></script>
 <script src="js/srs.js"></script>
 <script src="js/app.js"></script>
+<script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("sw.js").catch(() => {});
+    });
+  }
+</script>
 </body>
 </html>

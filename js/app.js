@@ -34,8 +34,15 @@ function showView(name) {
   if (name === "stats") renderStats();
 }
 
+function mistakeQuestions() {
+  return QUESTIONS
+    .filter(q => getCardState(progress, q.id).lapses > 0)
+    .sort((a, b) => getCardState(progress, b.id).lapses - getCardState(progress, a.id).lapses);
+}
+
 function renderHome() {
   document.getElementById("due-count-all").textContent = `(${dueQuestions().length})`;
+  document.getElementById("mistakes-count").textContent = `(${mistakeQuestions().length})`;
   const grid = document.getElementById("tema-grid");
   grid.innerHTML = "";
   TEMAS.forEach(t => {
@@ -201,6 +208,7 @@ function finishExam() {
 }
 
 document.getElementById("btn-review-all").addEventListener("click", () => startSession(shuffle(dueQuestions()), "review"));
+document.getElementById("btn-review-mistakes").addEventListener("click", () => startSession(mistakeQuestions(), "mistakes"));
 document.getElementById("btn-start-exam").addEventListener("click", startExam);
 document.getElementById("btn-exam-again").addEventListener("click", () => { startExam(); });
 document.getElementById("btn-exam-home").addEventListener("click", () => { showView("home"); renderHome(); });
