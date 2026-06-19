@@ -35,8 +35,15 @@ function showView(name) {
 }
 
 function mistakeQuestions() {
+  // A question counts as an "active" mistake while it has been failed at
+  // least once and hasn't yet been answered correctly twice in a row since
+  // that failure (reps resets to 0 on a lapse). Once relearned, it drops
+  // off this list instead of staying here forever.
   return QUESTIONS
-    .filter(q => getCardState(progress, q.id).lapses > 0)
+    .filter(q => {
+      const s = getCardState(progress, q.id);
+      return s.lapses > 0 && s.reps < 2;
+    })
     .sort((a, b) => getCardState(progress, b.id).lapses - getCardState(progress, a.id).lapses);
 }
 
@@ -109,14 +116,23 @@ function answerStudy(selected) {
 
   const isCorrect = selected === correct;
   if (isCorrect) {
+    trackAttempt(q.id, true);
     document.getElementById("study-grades").classList.remove("hidden");
     document.getElementById("study-grades").dataset.answered = "1";
   } else {
+    trackAttempt(q.id, false);
     const state = getCardState(progress, q.id);
     progress[q.id] = gradeCard(state, 0);
     saveProgress(progress);
     document.getElementById("study-next-row").classList.remove("hidden");
   }
+}
+
+function trackAttempt(id, isCorrect) {
+  const state = getCardState(progress, id);
+  state.attempts = (state.attempts || 0) + 1;
+  state.correct = (state.correct || 0) + (isCorrect ? 1 : 0);
+  progress[id] = state;
 }
 
 document.getElementById("study-grades").addEventListener("click", (e) => {
@@ -180,6 +196,7 @@ function answerExam(selected) {
     else if (i === selected) b.classList.add("incorrect");
   });
 
+  trackAttempt(q.id, isCorrect);
   const state = getCardState(progress, q.id);
   progress[q.id] = gradeCard(state, isCorrect ? 4 : 0);
   saveProgress(progress);
@@ -227,27 +244,44 @@ function renderStats() {
   const learned = states.filter(s => s.reps > 0).length;
   const due = states.filter(isDue).length;
   const lapses = states.reduce((sum, s) => sum + s.lapses, 0);
+  const totalAttempts = states.reduce((sum, s) => sum + (s.attempts || 0), 0);
+  const totalCorrect = states.reduce((sum, s) => sum + (s.correct || 0), 0);
+  const accuracy = totalAttempts > 0 ? Math.round((totalCorrect / totalAttempts) * 100) : null;
 
   document.getElementById("stats-grid").innerHTML = `
     <div class="stat-box"><div class="num">${total}</div><div class="label">Total preguntas</div></div>
     <div class="stat-box"><div class="num">${learned}</div><div class="label">Estudiadas</div></div>
     <div class="stat-box"><div class="num">${due}</div><div class="label">Pendientes hoy</div></div>
-    <div class="stat-box"><div class="num">${lapses}</div><div class="label">Fallos totales</div></div>
+    <div class="stat-box"><div class="num">${accuracy === null ? "-" : accuracy + "%"}</div><div class="label">Precisión global</div></div>
   `;
 
-  const byTema = document.getElementById("stats-by-tema");
-  byTema.innerHTML = "";
-  TEMAS.forEach(t => {
+  renderBarChart("chart-progreso", TEMAS.map(t => {
     const qs = QUESTIONS.filter(q => q.tema === t);
     const learnedT = qs.filter(q => getCardState(progress, q.id).reps > 0).length;
-    const row = document.createElement("div");
-    row.style.marginBottom = "10px";
-    row.innerHTML = `<div style="display:flex;justify-content:space-between;margin-bottom:4px;">
-      <span>Tema ${t}</span><span class="muted">${learnedT}/${qs.length}</span>
+    return { label: `Tema ${t}`, value: Math.round((learnedT / qs.length) * 100), sub: `${learnedT}/${qs.length}`, color: "var(--accent)" };
+  }));
+
+  renderBarChart("chart-precision", TEMAS.map(t => {
+    const qs = QUESTIONS.filter(q => q.tema === t);
+    const tStates = qs.map(q => getCardState(progress, q.id));
+    const attempts = tStates.reduce((sum, s) => sum + (s.attempts || 0), 0);
+    const correct = tStates.reduce((sum, s) => sum + (s.correct || 0), 0);
+    const pct = attempts > 0 ? Math.round((correct / attempts) * 100) : null;
+    const color = pct === null ? "var(--border)" : pct >= 80 ? "var(--green)" : pct >= 50 ? "var(--yellow)" : "var(--red)";
+    return { label: `Tema ${t}`, value: pct === null ? 0 : pct, sub: pct === null ? "sin datos" : `${pct}%`, color };
+  }));
+}
+
+function renderBarChart(containerId, bars) {
+  const el = document.getElementById(containerId);
+  el.innerHTML = bars.map(b => `
+    <div style="margin-bottom:10px;">
+      <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+        <span>${b.label}</span><span class="muted">${b.sub}</span>
+      </div>
+      <div class="progressbar"><div style="width:${b.value}%;background:${b.color};"></div></div>
     </div>
-    <div class="progressbar"><div style="width:${(learnedT / qs.length) * 100}%"></div></div>`;
-    byTema.appendChild(row);
-  });
+  `).join("");
 }
 
 document.getElementById("btn-export").addEventListener("click", () => {
