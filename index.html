@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Permiso de Armas D/E - Estudio</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header>
+  <h1>🎯 Permiso de Armas D/E</h1>
+  <nav id="main-nav">
+    <button data-view="home" class="active">Inicio</button>
+    <button data-view="stats">Estadísticas</button>
+  </nav>
+</header>
+
+<main>
+
+  <section id="view-home" class="view">
+    <div class="card">
+      <h2>Repasar (pendientes hoy)</h2>
+      <p class="muted">Repaso espaciado estilo Anki de todas las preguntas vencidas.</p>
+      <div class="actions-row">
+        <button class="btn btn-primary" id="btn-review-all">Repasar todo <span id="due-count-all"></span></button>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <h2>Examen simulado</h2>
+      <p class="muted">20 preguntas aleatorias de los 7 temas. Necesitas 16/20 para aprobar.</p>
+      <div class="actions-row">
+        <button class="btn btn-primary" id="btn-start-exam">Empezar examen</button>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <h2>Estudiar por tema</h2>
+      <p class="muted">Repasa o estudia todas las preguntas de un tema concreto.</p>
+      <div class="tema-grid" id="tema-grid"></div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <h2>Progreso</h2>
+      <p class="muted">El progreso se guarda en este dispositivo. Usa exportar/importar para llevarlo a otro dispositivo.</p>
+      <div class="actions-row">
+        <button class="btn" id="btn-export">⬇ Exportar progreso</button>
+        <button class="btn" id="btn-import-trigger">⬆ Importar progreso</button>
+        <input type="file" id="btn-import" accept="application/json">
+      </div>
+    </div>
+  </section>
+
+  <section id="view-study" class="view hidden">
+    <div class="progressbar"><div id="study-progress-bar" style="width:0%"></div></div>
+    <div class="card">
+      <div class="qmeta" id="study-qmeta"></div>
+      <div class="qtext" id="study-qtext"></div>
+      <div class="options" id="study-options"></div>
+      <div class="grade-row hidden" id="study-grades">
+        <button class="grade-hard" data-q="3">Difícil</button>
+        <button class="grade-good" data-q="4">Bien</button>
+        <button class="grade-easy" data-q="5">Fácil</button>
+      </div>
+      <div class="grade-row hidden" id="study-next-row">
+        <button class="grade-next" id="study-next-btn">Siguiente →</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="view-exam" class="view hidden">
+    <div class="progressbar"><div id="exam-progress-bar" style="width:0%"></div></div>
+    <div class="card">
+      <div class="qmeta" id="exam-qmeta"></div>
+      <div class="qtext" id="exam-qtext"></div>
+      <div class="options" id="exam-options"></div>
+      <div class="grade-row hidden" id="exam-next-row">
+        <button class="grade-next" id="exam-next-btn">Siguiente →</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="view-exam-result" class="view hidden">
+    <div class="card exam-result">
+      <h2>Resultado del examen</h2>
+      <div class="score" id="exam-score"></div>
+      <div id="exam-verdict" style="font-size:1.2rem;font-weight:600;"></div>
+      <div class="actions-row" style="justify-content:center;">
+        <button class="btn btn-primary" id="btn-exam-again">Nuevo examen</button>
+        <button class="btn" id="btn-exam-home">Volver al inicio</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="view-empty" class="view hidden">
+    <div class="card empty-state">
+      <p>🎉 No hay preguntas pendientes ahora mismo.</p>
+      <button class="btn" id="btn-empty-home">Volver al inicio</button>
+    </div>
+  </section>
+
+  <section id="view-stats" class="view hidden">
+    <div class="card">
+      <h2>Estadísticas</h2>
+      <div class="stats-grid" id="stats-grid"></div>
+    </div>
+    <div class="card" style="margin-top:16px;">
+      <h2>Por tema</h2>
+      <div id="stats-by-tema"></div>
+    </div>
+  </section>
+
+</main>
+
+<script src="js/data.js"></script>
+<script src="js/srs.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
